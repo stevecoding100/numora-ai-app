@@ -1,13 +1,23 @@
 import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 
+app.use(helmet());
+app.use(cors());
 app.use(express.json());
 
-app.get("/health", (req, res) => {
-    res.json({ status: "Server is running" });
+app.use(
+    rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 100,
+    }),
+);
+
+app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
 });
 
-app.listen(6000, () => {
-    console.log("Server running on port 6000");
-});
+export default app;
