@@ -1,7 +1,18 @@
-import React from "react";
+import { supabase } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 
-const Dashboard = () => {
-    return <div>Dashboard</div>;
-};
+export default function Dashboard() {
+    const navigate = useNavigate();
 
-export default Dashboard;
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        navigate("/");
+    };
+
+    return (
+        <div>
+            <h2>Dashboard</h2>
+            <button onClick={handleLogout}>Logout</button>
+        </div>
+    );
+}
