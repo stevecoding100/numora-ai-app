@@ -21,5 +21,5 @@
         "types": ["vitest/globals"],
         "useDefineForClassFields": true
     },
-    "include": ["src"]
+    "include": ["src", "integrations/supabase"]
 }

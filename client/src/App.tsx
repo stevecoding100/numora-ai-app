@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
 import Auth from "./pages/Auth";
 
-import ProtectedRoute from "./components/ProtectedRoute";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 
 import NotFound from "./pages/NotFound";
