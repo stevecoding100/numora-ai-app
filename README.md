@@ -1,1 +1,0 @@
-# numora-ai-app

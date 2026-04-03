@@ -24,7 +24,7 @@ import {
 } from "@/lib/budget-data";
 
 interface AddTransactionDialogProps {
-    onAdd: (tx: Omit<Transaction, "id">) => void;
+    onAdd: (tx: Omit<Transaction, "id">) => Promise<void>;
 }
 
 export function AddTransactionDialog({ onAdd }: AddTransactionDialogProps) {
@@ -38,7 +38,7 @@ export function AddTransactionDialog({ onAdd }: AddTransactionDialogProps) {
     const categories =
         type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description || !amount || !category) return;
         onAdd({
