@@ -4,6 +4,7 @@ import { SpendingChart } from "@/components/SpendingChart";
 import { SpendingTrendChart } from "@/components/SpendingTrendChart";
 import { TransactionList } from "@/components/TransactionList";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
+import { BudgetSettingsDialog } from "@/components/BudgetSettingsDialog";
 import { useBudget } from "@/hooks/use-budget";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const Index = () => {
         totalExpenses,
         balance,
         categories,
+        saveBudgets,
         spendingByCategory,
         spendingTrend,
     } = useBudget();
@@ -39,6 +41,10 @@ const Index = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <AddTransactionDialog onAdd={addTransaction} />
+                        <BudgetSettingsDialog
+                            categories={categories}
+                            onSave={saveBudgets}
+                        />
                         <Button
                             variant="ghost"
                             size="icon"

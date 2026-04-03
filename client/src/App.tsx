@@ -8,7 +8,8 @@ import Auth from "./pages/Auth";
 
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
-
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,14 @@ function App() {
                     <AuthProvider>
                         <Routes>
                             <Route path="/auth" element={<Auth />} />
+                            <Route
+                                path="/forgot-password"
+                                element={<ForgotPassword />}
+                            />
+                            <Route
+                                path="/reset-password"
+                                element={<ResetPassword />}
+                            />
                             <Route
                                 path="/"
                                 element={
