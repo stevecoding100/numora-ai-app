@@ -18,7 +18,11 @@ import {
 
 interface BudgetProgressProps {
     categories: BudgetCategory[];
-    onSaveBudget: (category: string, budget: number) => Promise<void>;
+    onSaveBudget: (
+        category: string,
+        budget: number,
+        spent?: number,
+    ) => Promise<void>;
     onDeleteBudget: (category: string) => Promise<void>;
 }
 
@@ -29,6 +33,7 @@ export function BudgetProgress({
 }: BudgetProgressProps) {
     const [editingCategory, setEditingCategory] = useState<string | null>(null);
     const [editValue, setEditValue] = useState(0);
+    const [editSpentValue, setEditSpentValue] = useState(0);
     const [deleteCategory, setDeleteCategory] = useState<string | null>(null);
 
     const fmt = (n: number) =>
@@ -40,11 +45,12 @@ export function BudgetProgress({
     const startEdit = (cat: BudgetCategory) => {
         setEditingCategory(cat.name);
         setEditValue(cat.budget);
+        setEditSpentValue(cat.spent); // Capture current spent amount
     };
 
     const saveEdit = async () => {
         if (editingCategory) {
-            await onSaveBudget(editingCategory, editValue);
+            await onSaveBudget(editingCategory, editValue, editSpentValue);
             setEditingCategory(null);
         }
     };
@@ -83,53 +89,126 @@ export function BudgetProgress({
                                     </span>
                                     <div className="flex items-center gap-2">
                                         {isEditing ? (
-                                            <div className="flex items-center gap-1">
-                                                <div className="relative w-24">
-                                                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                                                        $
+                                            // <div className="flex items-center gap-1">
+                                            //     <div className="relative w-24">
+                                            //         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                            //             $
+                                            //         </span>
+                                            //         <Input
+                                            //             type="number"
+                                            //             min={0}
+                                            //             step={10}
+                                            //             className="h-7 pl-5 text-right text-xs"
+                                            //             value={editValue}
+                                            //             onChange={(e) =>
+                                            //                 setEditValue(
+                                            //                     Math.max(
+                                            //                         0,
+                                            //                         Number(
+                                            //                             e.target
+                                            //                                 .value,
+                                            //                         ),
+                                            //                     ),
+                                            //                 )
+                                            //             }
+                                            //             onKeyDown={(e) =>
+                                            //                 e.key === "Enter" &&
+                                            //                 saveEdit()
+                                            //             }
+                                            //             autoFocus
+                                            //         />
+                                            //     </div>
+                                            //     <Button
+                                            //         variant="ghost"
+                                            //         size="icon"
+                                            //         className="h-7 w-7"
+                                            //         onClick={saveEdit}
+                                            //     >
+                                            //         <Check className="h-3.5 w-3.5 text-income" />
+                                            //     </Button>
+                                            //     <Button
+                                            //         variant="ghost"
+                                            //         size="icon"
+                                            //         className="h-7 w-7"
+                                            //         onClick={() =>
+                                            //             setEditingCategory(null)
+                                            //         }
+                                            //     >
+                                            //         <X className="h-3.5 w-3.5" />
+                                            //     </Button>
+                                            // </div>
+                                            <div className="flex flex-col gap-2 bg-muted/30 p-2 rounded-md">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs w-12 text-muted-foreground">
+                                                        Limit:
                                                     </span>
-                                                    <Input
-                                                        type="number"
-                                                        min={0}
-                                                        step={10}
-                                                        className="h-7 pl-5 text-right text-xs"
-                                                        value={editValue}
-                                                        onChange={(e) =>
-                                                            setEditValue(
-                                                                Math.max(
-                                                                    0,
+                                                    <div className="relative flex-1">
+                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                                            $
+                                                        </span>
+                                                        <Input
+                                                            type="number"
+                                                            className="h-7 pl-5 text-right text-xs"
+                                                            value={editValue}
+                                                            onChange={(e) =>
+                                                                setEditValue(
                                                                     Number(
                                                                         e.target
                                                                             .value,
                                                                     ),
-                                                                ),
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs w-12 text-muted-foreground">
+                                                        Spent:
+                                                    </span>
+                                                    <div className="relative flex-1">
+                                                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                                                            $
+                                                        </span>
+                                                        <Input
+                                                            type="number"
+                                                            className="h-7 pl-5 text-right text-xs"
+                                                            value={
+                                                                editSpentValue
+                                                            } // You'll need a new state for this
+                                                            onChange={(e) =>
+                                                                setEditSpentValue(
+                                                                    Number(
+                                                                        e.target
+                                                                            .value,
+                                                                    ),
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end gap-1">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-6"
+                                                        onClick={saveEdit}
+                                                    >
+                                                        <Check className="h-3 w-3 text-income" />{" "}
+                                                        Save
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="h-6"
+                                                        onClick={() =>
+                                                            setEditingCategory(
+                                                                null,
                                                             )
                                                         }
-                                                        onKeyDown={(e) =>
-                                                            e.key === "Enter" &&
-                                                            saveEdit()
-                                                        }
-                                                        autoFocus
-                                                    />
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-7 w-7"
-                                                    onClick={saveEdit}
-                                                >
-                                                    <Check className="h-3.5 w-3.5 text-income" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-7 w-7"
-                                                    onClick={() =>
-                                                        setEditingCategory(null)
-                                                    }
-                                                >
-                                                    <X className="h-3.5 w-3.5" />
-                                                </Button>
                                             </div>
                                         ) : (
                                             <>
