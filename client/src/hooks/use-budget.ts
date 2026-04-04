@@ -5,13 +5,13 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 const DEFAULT_BUDGETS: Record<string, number> = {
-    Housing: 1500,
-    Food: 400,
-    Transport: 200,
-    Entertainment: 100,
-    Shopping: 200,
-    Health: 100,
-    Utilities: 150,
+    Housing: 0,
+    Food: 0,
+    Transport: 0,
+    Entertainment: 0,
+    Shopping: 0,
+    Health: 0,
+    Utilities: 0,
 };
 
 const CATEGORY_META: { name: string; icon: string; color: string }[] = [
@@ -32,6 +32,7 @@ export function useBudget() {
     );
     const [loading, setLoading] = useState(true);
 
+    // ** Initial Data Fetching Functions */
     const fetchBudgets = useCallback(async () => {
         if (!user) return;
         const { data } = await supabase
@@ -76,7 +77,9 @@ export function useBudget() {
         fetchTransactions();
         fetchBudgets();
     }, [fetchTransactions, fetchBudgets]);
+    //** End of Initial Data Fetching Functions */
 
+    //** Start of Transaction Management Functions */
     const addTransaction = async (tx: Omit<Transaction, "id">) => {
         if (!user) return;
         const { error } = await supabase.from("transactions").insert({
@@ -129,7 +132,9 @@ export function useBudget() {
         }
         fetchTransactions();
     };
+    //** End of Transaction Management Functions *//
 
+    //** Start of Financial Calculation Functions */
     const totalIncome = transactions
         .filter((t) => t.type === "income")
         .reduce((sum, t) => sum + t.amount, 0);
@@ -139,7 +144,9 @@ export function useBudget() {
         .reduce((sum, t) => sum + t.amount, 0);
 
     const balance = totalIncome - totalExpenses;
+    // ** End of Financial Calculation Functions */
 
+    // ** Start of Budget Category Functions */
     const categories: BudgetCategory[] = CATEGORY_META.map((cat) => ({
         ...cat,
         budget: customBudgets[cat.name] ?? DEFAULT_BUDGETS[cat.name] ?? 0,
@@ -147,7 +154,9 @@ export function useBudget() {
             .filter((t) => t.type === "expense" && t.category === cat.name)
             .reduce((sum, t) => sum + t.amount, 0),
     }));
+    // ** End of Budget Category Functions */
 
+    //** Start of Budget Management Functions */
     const saveBudgets = async (budgets: Record<string, number>) => {
         if (!user) return;
         const rows = Object.entries(budgets).map(([category, budget]) => ({
@@ -155,7 +164,6 @@ export function useBudget() {
             category,
             budget,
         }));
-        // Upsert all budget categories
         const { error } = await supabase
             .from("budget_categories")
             .upsert(rows, { onConflict: "user_id,category" });
@@ -163,6 +171,43 @@ export function useBudget() {
         setCustomBudgets(budgets);
     };
 
+    const saveSingleBudget = async (category: string, budget: number) => {
+        if (!user) return;
+        const { error } = await supabase
+            .from("budget_categories")
+            .upsert(
+                { user_id: user.id, category, budget },
+                { onConflict: "user_id,category" },
+            );
+        if (error) {
+            toast.error("Failed to save budget");
+            return;
+        }
+        setCustomBudgets((prev) => ({ ...prev, [category]: budget }));
+        toast.success(`${category} budget updated`);
+    };
+
+    const deleteBudget = async (category: string) => {
+        if (!user) return;
+        const { error } = await supabase
+            .from("budget_categories")
+            .delete()
+            .eq("user_id", user.id)
+            .eq("category", category);
+        if (error) {
+            toast.error("Failed to reset budget");
+            return;
+        }
+        setCustomBudgets((prev) => {
+            const next = { ...prev };
+            delete next[category];
+            return next;
+        });
+        toast.success(`${category} budget reset to default`);
+    };
+    //** End of Budget Management Functions */
+
+    //** Start of Spending Analysis Functions */
     const spendingByCategory = categories
         .filter((c) => c.spent > 0)
         .map((c) => ({ name: c.name, value: c.spent, icon: c.icon }));
@@ -180,6 +225,7 @@ export function useBudget() {
         .sort((a, b) =>
             a.day.localeCompare(b.day, undefined, { numeric: true }),
         );
+    //** End of Spending Analysis Functions */
 
     return {
         transactions,
@@ -191,6 +237,8 @@ export function useBudget() {
         balance,
         categories,
         saveBudgets,
+        saveSingleBudget,
+        deleteBudget,
         spendingByCategory,
         spendingTrend,
         loading,
