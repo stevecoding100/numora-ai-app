@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Transaction, BudgetCategory } from "@/lib/budget-data";
+import { Transaction, BudgetCategory, CATEGORY_ICONS } from "@/lib/budget-data";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -27,9 +27,9 @@ const CATEGORY_META: { name: string; icon: string; color: string }[] = [
 export function useBudget() {
     const { user } = useAuth();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [customBudgets, setCustomBudgets] = useState<Record<string, number>>(
-        {},
-    );
+    const [customBudgets, setCustomBudgets] = useState<
+        Record<string, { budget: number; spent: number }>
+    >({});
     const [loading, setLoading] = useState(true);
 
     // ** Initial Data Fetching Functions */
@@ -37,11 +37,14 @@ export function useBudget() {
         if (!user) return;
         const { data } = await supabase
             .from("budget_categories")
-            .select("category, budget");
+            .select("category, budget, manual_spent");
         if (data) {
-            const map: Record<string, number> = {};
+            const map: Record<string, { budget: number; spent: number }> = {};
             data.forEach((r) => {
-                map[r.category] = Number(r.budget);
+                map[r.category] = {
+                    budget: Number(r.budget),
+                    spent: Number(r.manual_spent ?? 0),
+                };
             });
             setCustomBudgets(map);
         }
@@ -147,13 +150,28 @@ export function useBudget() {
     // ** End of Financial Calculation Functions */
 
     // ** Start of Budget Category Functions */
-    const categories: BudgetCategory[] = CATEGORY_META.map((cat) => ({
-        ...cat,
-        budget: customBudgets[cat.name] ?? DEFAULT_BUDGETS[cat.name] ?? 0,
-        spent: transactions
+
+    const categories: BudgetCategory[] = CATEGORY_META.map((cat) => {
+        const custom = customBudgets[cat.name];
+        // 1. Calculate the real-time sum of transactions for this category
+        const transactionSum = transactions
             .filter((t) => t.type === "expense" && t.category === cat.name)
-            .reduce((sum, t) => sum + t.amount, 0),
-    }));
+            .reduce((sum, t) => sum + t.amount, 0);
+
+        // 2. Get the manual override amount (default to 0 if not set)
+        const manualSpent = typeof custom === "object" ? custom.spent : 0;
+        return {
+            ...cat,
+            // Use the custom budget limit or the default
+            budget:
+                typeof custom === "object"
+                    ? custom.budget
+                    : (custom ?? DEFAULT_BUDGETS[cat.name] ?? 0),
+
+            // ADD THEM TOGETHER: Manual adjustments + Real transactions
+            spent: manualSpent + transactionSum,
+        };
+    });
     // ** End of Budget Category Functions */
 
     //** Start of Budget Management Functions */
@@ -171,19 +189,31 @@ export function useBudget() {
         setCustomBudgets(budgets);
     };
 
-    const saveSingleBudget = async (category: string, budget: number) => {
+    const saveSingleBudget = async (
+        category: string,
+        budget: number,
+        spent: number,
+    ) => {
         if (!user) return;
-        const { error } = await supabase
-            .from("budget_categories")
-            .upsert(
-                { user_id: user.id, category, budget },
-                { onConflict: "user_id,category" },
-            );
+
+        const { error } = await supabase.from("budget_categories").upsert(
+            {
+                user_id: user.id,
+                category,
+                budget,
+                manual_spent: spent, // Ensure this matches your DB column name
+            },
+            { onConflict: "user_id,category" },
+        );
+
         if (error) {
             toast.error("Failed to save budget");
             return;
         }
-        setCustomBudgets((prev) => ({ ...prev, [category]: budget }));
+        setCustomBudgets((prev) => ({
+            ...prev,
+            [category]: { budget, spent },
+        }));
         toast.success(`${category} budget updated`);
     };
 
