@@ -4,7 +4,6 @@ import { SpendingChart } from "@/components/SpendingChart";
 import { SpendingTrendChart } from "@/components/SpendingTrendChart";
 import { TransactionList } from "@/components/TransactionList";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
-import { BudgetSettingsDialog } from "@/components/BudgetSettingsDialog";
 import { useBudget } from "@/hooks/use-budget";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,8 @@ const Index = () => {
         balance,
         categories,
         saveBudgets,
+        saveSingleBudget,
+        deleteBudget,
         spendingByCategory,
         spendingTrend,
     } = useBudget();
@@ -35,16 +36,12 @@ const Index = () => {
                         <h1 className="text-xl font-display font-bold tracking-tight">
                             💸 BudgetFlow
                         </h1>
-                        <p className="text-xs text-muted-foreground">
-                            February 2026
+                        <p className="text-xs text-center text-muted-foreground">
+                            {new Date().toLocaleDateString()}
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
                         <AddTransactionDialog onAdd={addTransaction} />
-                        <BudgetSettingsDialog
-                            categories={categories}
-                            onSave={saveBudgets}
-                        />
                         <Button
                             variant="ghost"
                             size="icon"
@@ -66,7 +63,11 @@ const Index = () => {
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <SpendingChart data={spendingByCategory} />
-                    <BudgetProgress categories={categories} />
+                    <BudgetProgress
+                        categories={categories}
+                        onSaveBudget={saveSingleBudget}
+                        onDeleteBudget={deleteBudget}
+                    />
                 </div>
 
                 <SpendingTrendChart data={spendingTrend} />
