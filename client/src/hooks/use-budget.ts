@@ -102,6 +102,7 @@ export function useBudget() {
                 date: tx.date,
             })
             .select(); // Add .select() to get the new row back immediately
+
         if (error) {
             toast.error("Failed to add transaction");
             console.error(error);
