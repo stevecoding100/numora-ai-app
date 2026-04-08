@@ -50,7 +50,11 @@ export function BudgetProgress({
 
     const saveEdit = async () => {
         if (editingCategory) {
-            await onSaveBudget(editingCategory, editValue, editSpentValue);
+            await onSaveBudget(
+                editingCategory,
+                Number(editValue),
+                Number(editSpentValue),
+            );
             setEditingCategory(null);
         }
     };
