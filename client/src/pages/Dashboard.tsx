@@ -34,7 +34,7 @@ const Index = () => {
                 <div className="container flex items-center mx-auto justify-between py-4 px-4">
                     <div>
                         <h1 className="text-xl font-display font-bold tracking-tight">
-                            💸 BudgetFlow
+                            💸 Numora
                         </h1>
                         <p className="text-xs text-center text-muted-foreground">
                             {new Date().toLocaleDateString()}
