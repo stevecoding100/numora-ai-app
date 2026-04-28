@@ -8,6 +8,7 @@ import { useBudget } from "@/hooks/use-budget";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { FinancialChatBot } from "@/components/FinancialChatBot";
 
 const Index = () => {
     const {
@@ -19,7 +20,6 @@ const Index = () => {
         totalExpenses,
         balance,
         categories,
-        saveBudgets,
         saveSingleBudget,
         deleteBudget,
         spendingByCategory,
@@ -31,13 +31,13 @@ const Index = () => {
     return (
         <div className="min-h-screen bg-background">
             <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-                <div className="container flex items-center mx-auto justify-between py-4 px-4">
+                <div className="container flex items-center justify-between py-4">
                     <div>
                         <h1 className="text-xl font-display font-bold tracking-tight">
                             💸 Numora
                         </h1>
-                        <p className="text-xs text-center text-muted-foreground">
-                            {new Date().toLocaleDateString()}
+                        <p className="text-xs text-muted-foreground">
+                            April 23, 2026
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -54,7 +54,7 @@ const Index = () => {
                 </div>
             </header>
 
-            <main className="container py-6 space-y-6 mx-auto">
+            <main className="container py-6 space-y-6">
                 <OverviewCards
                     totalIncome={totalIncome}
                     totalExpenses={totalExpenses}
@@ -78,6 +78,8 @@ const Index = () => {
                     onDelete={deleteTransaction}
                 />
             </main>
+
+            <FinancialChatBot />
         </div>
     );
 };
