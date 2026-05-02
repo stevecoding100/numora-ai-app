@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, X, Send, Sparkles, Loader2 } from "lucide-react";
+import { X, Send, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,7 +65,6 @@ export function FinancialChatBot() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    // Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
                     // Using the session access_token
                     Authorization: `Bearer ${session?.access_token}`,
                 },
@@ -102,8 +101,6 @@ export function FinancialChatBot() {
                     if (json === "[DONE]") break;
                     try {
                         const parsed = JSON.parse(json);
-                        // const content = parsed.choices?.[0]?.delta?.content;
-                        // if (content) upsert(content);
                         // Path for Gemini 3 Streaming API
                         const content =
                             parsed.candidates?.[0]?.content?.parts?.[0]?.text;
