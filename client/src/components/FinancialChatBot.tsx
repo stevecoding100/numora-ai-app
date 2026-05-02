@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { MessageCircle, X, Send, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -55,13 +56,18 @@ export function FinancialChatBot() {
                 ];
             });
         };
-
+        // GET THE ACTUAL SESSION
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
         try {
             const resp = await fetch(CHAT_URL, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                    // Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                    // Using the session access_token
+                    Authorization: `Bearer ${session?.access_token}`,
                 },
                 body: JSON.stringify({ messages: allMessages }),
             });
@@ -96,9 +102,14 @@ export function FinancialChatBot() {
                     if (json === "[DONE]") break;
                     try {
                         const parsed = JSON.parse(json);
-                        const content = parsed.choices?.[0]?.delta?.content;
+                        // const content = parsed.choices?.[0]?.delta?.content;
+                        // if (content) upsert(content);
+                        // Path for Gemini 3 Streaming API
+                        const content =
+                            parsed.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (content) upsert(content);
                     } catch {
+                        // If a chunk is split mid-JSON, we wait for the next one
                         buffer = line + "\n" + buffer;
                         break;
                     }

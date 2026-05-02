@@ -28,21 +28,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let mounted = true;
+
+        const init = async () => {
+            const { data, error } = await supabase.auth.getSession();
+
+            if (!mounted) return;
+
+            if (error) {
+                console.error("Session error:", error);
+                setSession(null);
+                setUser(null);
+            } else {
+                setSession(data.session);
+                setUser(data.session?.user ?? null);
+            }
+
+            setLoading(false);
+        };
+
+        init();
+
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
+
+            // 🔥 critical: handle broken refresh
+            if (event === "TOKEN_REFRESH_FAILED") {
+                console.warn("Session expired, user signed out");
+                setSession(null);
+                setUser(null);
+            }
         });
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-        });
-
-        return () => subscription.unsubscribe();
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
     const signOut = async () => {
